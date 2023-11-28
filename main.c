@@ -97,7 +97,7 @@ void* send_next_point_to_arduino(void* arg) {
 }
 */
 
-void calculate_next_point(struct Point * actuel, struct Point * next) {
+void calculate_next_point(struct PARAMS * params, struct Point * actuel, struct Point * next) {
     //EXTRAIRE LE PROCHAIN POINT DE TRAJECTOIRE
     if (distance(actuel, params->last_goal) > distance(actuel, params->next_goal)){
         params->last_goal = params->next_goal;

@@ -41,7 +41,7 @@ void send_code_to_arduino(int port, int code) {
 	}
 }
 
-void send_next_point_to_arduino(int port, Point * next, Point * current) {
+void send_next_point_to_arduino(struct PARAMS * params, int port, Point * next, Point * current) {
 	send_code_to_arduino(port, 1);
 	
 	float x0 = (float)current->x;

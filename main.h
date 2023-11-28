@@ -78,4 +78,10 @@ struct PARAMS{
 
 void attendre(clock_t start, float time_in_ms);
 
+void calculate_next_point(struct PARAMS * params, struct Point * actuel, struct Point * next);
+
+void *advance(void* arg);
+
+int setupUDP(int argc, char * argv[], struct sockaddr_in * server_adr, struct sockaddr_in * client_adr);
+
 #endif
