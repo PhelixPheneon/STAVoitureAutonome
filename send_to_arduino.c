@@ -41,13 +41,13 @@ void send_code_to_arduino(int port, int code) {
 	}
 }
 
-void send_next_point_to_arduino(struct PARAMS * params, int port, Point * next, Point * current) {
+void send_next_point_to_arduino(int port, Point next, Point current) {
 	send_code_to_arduino(port, 1);
 	
-	float x0 = (float)current->x;
-	float y0 = (float)current->y;
-	float x1 = (float)next->x;
-	float y1 = (float)next->y;
+	float x0 = (float)current.x;
+	float y0 = (float)current.y;
+	float x1 = (float)next.x;
+	float y1 = (float)next.y;
 	
 	serialPrintf(port, "%.2f\n%.2f\n%.2f\n%.2f\n", x0, y0, x1, y1);	
 }

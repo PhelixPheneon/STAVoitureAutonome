@@ -2,6 +2,7 @@
 #define _MAIN_H_
 
 #define MAX_OCTETS 150
+#define DEBUG 1 //if 1 we are in debug mode = no server communication
 
 #define _GNU_SOURCE
 #include <sched.h>
@@ -62,7 +63,9 @@ typedef struct Point {
 
 //arg pour fonction envoyer_donnees
 struct PARAMS{
+    int portArduino;
     struct PositionValue * pos;
+    struct Point currentPoint;
     int sd;
     struct sockaddr_in * server_adr;
     struct sockaddr_in * client_adr;
@@ -78,7 +81,7 @@ struct PARAMS{
 
 void attendre(clock_t start, float time_in_ms);
 
-void calculate_next_point(struct PARAMS * params, struct Point * actuel, struct Point * next);
+void calculate_next_point(struct PARAMS * params);
 
 void *advance(void* arg);
 

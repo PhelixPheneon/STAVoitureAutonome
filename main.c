@@ -97,32 +97,40 @@ void* send_next_point_to_arduino(void* arg) {
 }
 */
 
-void calculate_next_point(struct PARAMS * params, struct Point * actuel, struct Point * next) {
+void calculate_next_point(struct PARAMS * params) {
+    Point actuel = params->currentPoint;
+    Point last = params->last_goal;
+    Point next = params->next_goal;
+    
     //EXTRAIRE LE PROCHAIN POINT DE TRAJECTOIRE
-    if (distance(actuel, params->last_goal) > distance(actuel, params->next_goal)){
-        params->last_goal = params->next_goal;
+    if (distance(actuel, last) > distance(actuel, next)){
+        params->last_goal = next;
         params->indice_next_goal ++;
         params->next_goal = params->chemin[params->indice_next_goal];
     }
-    
+    else {
+        //point rests the same
+    }
+        
 }
 
 void *advance(void* arg) {
     struct PARAMS * params = (struct PARAMS*)arg;
     if(params->next_goal.x == -1) {
+        //envoyer code 106 au serveur == j'ai pas de mission
         printf("ENTER A MISSION PLEASE!\n");
         sleep(1);
         return NULL;
     }
     struct PositionValue * pos = params->pos;
     //temporary Point struct to be able to use distance()
-    struct Point * actuel;
+    struct Point * actuel = (Point *)malloc(sizeof(Point));
     actuel->x = pos->x;
     actuel->y = pos->y;
-    //value to be communicated to the Arduino
-    struct Point * next;
-    calculate_next_point(actuel, next);
+    //put next point in params->next_goal
+    calculate_next_point(params);
     
+    send_next_point_to_arduino(params->portArduino, params->next_goal, params->currentPoint);
     
 }
 
@@ -182,6 +190,9 @@ int main(int argc, char *argv[]) {
     pthread_t thread_id_receive;
     pthread_t thread_id_advance;
     
+    //initialiser params
+    struct PARAMS *params = (struct PARAMS *)malloc(sizeof(struct PARAMS));
+    
     struct sockaddr_in server_adr, client_adr; // Structure d'adresses serveur et client
     struct PositionValue * pos = (struct PositionValue *)malloc(sizeof(struct PositionValue)); // dummy starting pos
     /*DOIT ETRE DECOMMENTER SUR RASPERRY POUR UTILISER OPENSSL
@@ -189,11 +200,20 @@ int main(int argc, char *argv[]) {
     *SSL_library_init();
     */
     int port = open_comm_arduino();
-    int sd = setupUDP(argc, argv, &server_adr, &client_adr);
+    int sd;
+    
+    //bloquer threads de communication en mode debug
+    if (DEBUG != 1) {
+        sd = setupUDP(argc, argv, &server_adr, &client_adr);
+    } else {
+        sd = 0; //just to suppress warnings
+    }
+    
     struct MarvelmindHedge * hedge = setupHedge(argc, argv);
     
-    //initialiser params
-    struct PARAMS *params = (struct PARAMS *)malloc(sizeof(struct PARAMS));
+    
+    params->portArduino = port;
+    
     params->next_goal.x = -1;
     params->nb_points = -1;
     params->hedge = hedge;
@@ -206,6 +226,11 @@ int main(int argc, char *argv[]) {
     pos->y = 0;
     pos->z = 0;
     params->pos = pos;
+    
+    Point current;
+    current.x = 0;
+    current.y = 0;
+    params->currentPoint = current;
 
     //charger carte en params
     if (extract_points(params) == -1) {
@@ -213,19 +238,22 @@ int main(int argc, char *argv[]) {
       exit(EXIT_FAILURE);
     }
   
-    
-    //recevoir continuellement des messages depuis le serveur
-    if (pthread_create(&thread_id_receive, NULL, receive, (void*)params) != 0) {
-        perror("pthread_create");
-        return 1;
+    //bloquer threads de communication en mode debug
+    if (DEBUG != 1) {
+        //recevoir continuellement des messages depuis le serveur
+        if (pthread_create(&thread_id_receive, NULL, receive, (void*)params) != 0) {
+            perror("pthread_create");
+            return 1;
+        }
+        //envoyer position au serveur
+        if (pthread_create(&thread_id_send_pos_to_server, NULL, send_pos_to_server, (void*)params) != 0) {
+            perror("pthread_create");
+            return 1;
+        }
     }
+            
     //recevoir la localisation des marvelminds continuellement
     if (pthread_create(&thread_id_get_location, NULL, get_location, (void*)params) != 0) {
-        perror("pthread_create");
-        return 1;
-    }
-    //envoyer position au serveur
-    if (pthread_create(&thread_id_send_pos_to_server, NULL, send_pos_to_server, (void*)params) != 0) {
         perror("pthread_create");
         return 1;
     }
