@@ -200,17 +200,18 @@ int main(int argc, char *argv[]) {
     *SSL_library_init();
     */
     int port = open_comm_arduino();
+    //int port = serial_ouvert(); version de yann
     int sd;
+    struct MarvelmindHedge * hedge;
     
-    //bloquer threads de communication en mode debug
+    //bloquer threads de communication et de marvelmind en mode debug
     if (DEBUG != 1) {
         sd = setupUDP(argc, argv, &server_adr, &client_adr);
+        hedge = setupHedge(argc, argv);
     } else {
         sd = 0; //just to suppress warnings
     }
-    
-    struct MarvelmindHedge * hedge = setupHedge(argc, argv);
-    
+       
     
     params->portArduino = port;
     

@@ -3,6 +3,8 @@
 
 #include "main.h"
 
+int serial_ouvert();
+
 int open_comm_arduino();
 
 void send_to_arduino(int port, int code);

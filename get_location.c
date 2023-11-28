@@ -59,9 +59,14 @@ void * get_location (void* arg) {
     clock_t start;
   
     while(1) {
-      start = clock();
-      mobPos = (struct PositionValue *)malloc(sizeof(struct PositionValue));
-        getPositionFromMarvelmindHedge(hedge, mobPos);
+        start = clock();
+        mobPos = (struct PositionValue *)malloc(sizeof(struct PositionValue));
+        
+        //debug mode without marvelminds
+        if (DEBUG != 1) {
+            getPositionFromMarvelmindHedge(hedge, mobPos);
+        } 
+
         free(params->pos);
         params->pos = mobPos;
         params->currentPoint.x = mobPos->x;

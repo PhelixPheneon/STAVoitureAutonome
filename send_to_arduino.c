@@ -2,6 +2,40 @@
 
 #define ARDUINO_SERIAL_DEVICE "/dev/ttyUSB0"
 
+int serial_ouvert()
+{
+    int fd;
+    struct termios options;
+    
+    fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
+    
+    if (fd == -1) {
+        perror("Error: Unable to open serial port");
+        return 1;
+    }
+
+    tcgetattr(fd, &options);
+    cfsetispeed(&options, B9600);
+    cfsetospeed(&options, B9600);
+    options.c_cflag |= (CLOCAL | CREAD);
+    options.c_cflag &= ~PARENB;
+    options.c_cflag &= ~CSTOPB;
+    options.c_cflag &= ~CSIZE;
+    options.c_cflag |= CS8;
+    options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+    options.c_oflag &= ~OPOST;
+    options.c_cc[VMIN] = 0;
+    options.c_cc[VTIME] = 10;
+
+    if (tcsetattr(fd, TCSANOW, &options) != 0) {
+        perror("Error: Unable to set serial port options");
+        return 1;
+    }
+    sleep(1);
+
+    return fd;
+}
+
 int open_comm_arduino() {
 	int arduino_fd;
 	if ((arduino_fd = serialOpen(ARDUINO_SERIAL_DEVICE, 9600)) < 0 ) {
@@ -23,6 +57,7 @@ void send_code_to_arduino(int port, int code) {
 	
 	//send code
 	char codeStr[4];
+	
 	snprintf(codeStr, sizeof(codeStr), "%03d", code);
 	serialPrintf(port, codeStr);
 	
