@@ -55,22 +55,31 @@ struct MarvelmindHedge * setupHedge(int argc, char * argv[]) {
 void * get_location (void* arg) {
     struct PARAMS * params = (struct PARAMS*)arg;
     struct MarvelmindHedge * hedge = params->hedge;
-    struct PositionValue * mobPos; //position du mobile
+    struct PositionValue * mobPos = (struct PositionValue*)malloc(sizeof(struct PositionValue)); //position du mobile
+    mobPos->x = 0;
+    mobPos->y = 0;
     clock_t start;
   
     while(1) {
         start = clock();
-        mobPos = (struct PositionValue *)malloc(sizeof(struct PositionValue));
         
         //debug mode without marvelminds
         if (DEBUG != 1) {
             getPositionFromMarvelmindHedge(hedge, mobPos);
-        } 
+            free(params->pos);
+            params->pos = mobPos;
+            params->currentPoint.x = mobPos->x;
+            params->currentPoint.y = mobPos->y;
+        } else {
+            mobPos->x += 1;
+            mobPos->y += 1;
+            printf("mobPos x: %d\n",mobPos->x);
+            params->pos = mobPos;
+            params->currentPoint.x = mobPos->x;
+            params->currentPoint.y = mobPos->y;
+        }
 
-        free(params->pos);
-        params->pos = mobPos;
-        params->currentPoint.x = mobPos->x;
-        params->currentPoint.y = mobPos->y;
+        
 
         attendre(start, 500.0);
     }

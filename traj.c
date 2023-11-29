@@ -34,7 +34,12 @@ int trouverPointPlusProche(Point carte[], int n, int pointInit,
 
 void Trajectory(struct PARAMS *params, Point point_final) {
   int n = params->nb_points; // Nombre de points
-  params->chemin = malloc(params->nb_points * sizeof(struct Point));
+  params->chemin = (struct Point *)malloc(sizeof(struct Point) * n);
+    for(int i=0; i<n; i++) {
+      params->chemin[i].x = 0;
+      params->chemin[i].y = 0;
+    }
+    
   Point depart;
   depart.x = params->pos->x;
   depart.y = params->pos->y;

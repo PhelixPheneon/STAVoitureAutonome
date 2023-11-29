@@ -21,14 +21,14 @@ void* send_pos_to_server(void* arg) {
     //l'affinité du thread
     pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
   
-	  printf("Thread \"send_pos_to_server\" lancé\n\n");
+    printf("Thread \"send_pos_to_server\" lancé\n\n");
     int nbcar;
     struct PARAMS * params = (struct PARAMS*)arg;
     struct PositionValue * pos = params->pos;
     int sd = params->sd;
     char message[500]; // Character array to store the formatted string
   
-	  while(1) {
+    while(1) {
       start = clock();
       message[0] = '\0';
       
@@ -39,7 +39,7 @@ void* send_pos_to_server(void* arg) {
       CHECK_ERROR(nbcar, -1, "Erreur d'envoi\n");
       
       attendre(start, 300.0); // pauser pour 300 millisecondes
-	  }
+	}
     pthread_exit(NULL);
 }
 
@@ -105,32 +105,35 @@ void calculate_next_point(struct PARAMS * params) {
     //EXTRAIRE LE PROCHAIN POINT DE TRAJECTOIRE
     if (distance(actuel, last) > distance(actuel, next)){
         params->last_goal = next;
+        printf("next goal x: %d, y: %d\n",next.x,next.y);
         params->indice_next_goal ++;
         params->next_goal = params->chemin[params->indice_next_goal];
     }
     else {
         //point rests the same
+        printf("next goal hasn't changed\n");
+        delay(1000);
     }
         
 }
 
 void *advance(void* arg) {
     struct PARAMS * params = (struct PARAMS*)arg;
-    if(params->next_goal.x == -1) {
+    while(params->next_goal.x == -1) {
         //envoyer code 106 au serveur == j'ai pas de mission
         printf("ENTER A MISSION PLEASE!\n");
         sleep(1);
-        return NULL;
     }
-    struct PositionValue * pos = params->pos;
-    //temporary Point struct to be able to use distance()
-    struct Point * actuel = (Point *)malloc(sizeof(Point));
-    actuel->x = pos->x;
-    actuel->y = pos->y;
-    //put next point in params->next_goal
-    calculate_next_point(params);
     
-    send_next_point_to_arduino(params->portArduino, params->next_goal, params->currentPoint);
+        
+    while (1) {
+        printf("current x: %d, y: %d\n",params->pos->x,params->pos->y);
+        //put next point in params->next_goal
+        calculate_next_point(params);
+        
+        send_next_point_to_arduino(params->portArduino, params->next_goal, params->currentPoint);
+        
+    }
     
 }
 
@@ -185,6 +188,8 @@ int setupUDP(int argc, char * argv[], struct sockaddr_in * server_adr, struct so
 }
 
 int main(int argc, char *argv[]) {
+    
+    
     pthread_t thread_id_send_pos_to_server;
     pthread_t thread_id_get_location;
     pthread_t thread_id_receive;
@@ -237,6 +242,16 @@ int main(int argc, char *argv[]) {
     if (extract_points(params) == -1) {
       printf("Impossible de récupérer les données de la carte\n");
       exit(EXIT_FAILURE);
+    }
+    
+    //in debug mode we give the final mission directly
+    if (DEBUG == 1) {
+        if (argc < 2) {
+            printf("DEBUG MODE: ENTER X AND Y OF MISSION PLEASE!\n");
+        }
+        struct Point * mission = parse_point(argv[1],argv[2]);
+        Trajectory(params, *mission);
+
     }
   
     //bloquer threads de communication en mode debug
