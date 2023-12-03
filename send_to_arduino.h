@@ -7,7 +7,7 @@ int serial_ouvert();
 
 int open_comm_arduino();
 
-void send_to_arduino(int port, int code);
+void send_to_arduino(int port, int16_t code);
 
 void send_next_point_to_arduino(int port, Point next, Point current);
 

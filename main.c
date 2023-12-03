@@ -111,7 +111,7 @@ void calculate_next_point(struct PARAMS * params) {
     }
     else {
         //point rests the same
-        printf("next goal hasn't changed\n");
+        //printf("next goal hasn't changed\n");
         delay(1000);
     }
         
@@ -127,11 +127,13 @@ void *advance(void* arg) {
     
         
     while (1) {
-        printf("current x: %d, y: %d\n",params->pos->x,params->pos->y);
+        //printf("current x: %d, y: %d\n",params->pos->x,params->pos->y);
         //put next point in params->next_goal
         calculate_next_point(params);
         
         send_next_point_to_arduino(params->portArduino, params->next_goal, params->currentPoint);
+        //wait for arduino to do a loop
+        sleep(5);
         
     }
     

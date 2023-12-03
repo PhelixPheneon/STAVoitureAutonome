@@ -73,7 +73,6 @@ void * get_location (void* arg) {
         } else {
             mobPos->x += 1;
             mobPos->y += 1;
-            printf("mobPos x: %d\n",mobPos->x);
             params->pos = mobPos;
             params->currentPoint.x = mobPos->x;
             params->currentPoint.y = mobPos->y;

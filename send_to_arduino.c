@@ -48,30 +48,45 @@ int open_comm_arduino() {
 
 //Call seperateley for each integer you want to send
 //code 1: send next position
-void send_code_to_arduino(int port, int code) {
+int send_code_to_arduino(int port, int16_t code) {
 	char received_data[64];
 	char received_char;
 	int ack = 0;
 	time_t start, current;
+	double duration;
 	int timeout = 5;
 	
 	//send code
-	char codeStr[4];
-	
-	snprintf(codeStr, sizeof(codeStr), "%03d", code);
-	serialPrintf(port, codeStr);
+	int16_t* codeptr = &code;
+	for(int j = 0; j < sizeof(int16_t); j++) {
+		//send each byte as a char seperately
+		serialPutchar(port, *(codeptr+j));
+	}
+	serialPutchar(port, '\0');
+	printf("sent code %d ARDUINO\n", code);
 	
 	//wait for acknowldegment
-	time(&start);
-	while(!ack && difftime(time(&current), start) < timeout) {
+	start = time(NULL);
+	
+	while(!ack) {
 		while (serialDataAvail(port) > 0) {
-			serialGetchar(port);
+			received_char = serialGetchar(port);
 			if (received_char != -1) {
 				strncat(received_data, &received_char, 1);
 			}
 		}
-		if (strstr(received_data, "ACK") == NULL) {
-				ack = 1;
+		if (strstr(received_data, "ACK") != NULL) {
+			ack = 1;
+			
+			printf("\nRECEIVED ACK\n\n");
+			return 1;
+		}
+		
+		current = time(NULL);
+		duration = difftime(current,start);
+		if (duration >= timeout) {
+			printf("TIMEOUT ack failed\n");
+			return 0;
 		}
 	}
 }
@@ -79,12 +94,19 @@ void send_code_to_arduino(int port, int code) {
 void send_next_point_to_arduino(int port, Point next, Point current) {
 	send_code_to_arduino(port, 1);
 	
-	float x0 = (float)current.x;
-	float y0 = (float)current.y;
-	float x1 = (float)next.x;
-	float y1 = (float)next.y;
+	int data[4] = {(int)current.x, (int)current.y, (int)next.x, (int)next.y};
 	
-	serialPrintf(port, "%.2f\n%.2f\n%.2f\n%.2f\n", x0, y0, x1, y1);	
+	for(int i=0; i < 4; i++) {
+		char * intptr = (char*)&data[i];
+		for(int j = 0; j < sizeof(int); j++) {
+			//send each byte as a char seperately
+			serialPutchar(port, *(intptr+j));
+		}
+		serialPutchar(port, '\0');	
+	}
+	
+	printf("sent points to ARDUINO\n");
+
 }
 
 
