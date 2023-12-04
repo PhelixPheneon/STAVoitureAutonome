@@ -1,7 +1,7 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-#define MAX_OCTETS 150
+#define MAX_OCTETS 1024
 #define DEBUG 1 //if 1 we are in debug mode = no server communication
 
 #define _GNU_SOURCE
@@ -29,10 +29,6 @@
 #include <string.h>
 #include <time.h>
 #include "marvelmind.h"
-#if defined(WIN32) || defined(_WIN64)
-#include <windows.h>
-#include <process.h>
-#else
 #include <unistd.h>
 #include <termios.h>
 #include <fcntl.h>
@@ -47,7 +43,6 @@
 //#include <openssl/err.h>
 //#include <openssl/ssl.h>
 //#include <openssl/x509.h>
-#endif
 
 
 #define CHECK_ERROR(val1, val2, msg) \

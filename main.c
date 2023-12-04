@@ -1,6 +1,6 @@
 #include "main.h"
 #include "get_location.h"
-#include "receive.h"
+#include "comm.h"
 #include "traj.h"
 #include "extraction_point.h"
 #include "send_to_arduino.h"
@@ -26,7 +26,7 @@ void* send_pos_to_server(void* arg) {
     struct PARAMS * params = (struct PARAMS*)arg;
     struct PositionValue * pos = params->pos;
     int sd = params->sd;
-    char message[500]; // Character array to store the formatted string
+    char message[MAX_OCTETS]; // Character array to store the formatted string
   
     while(1) {
       start = clock();
