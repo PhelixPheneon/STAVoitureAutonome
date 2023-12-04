@@ -1,6 +1,6 @@
 #include "main.h"
 #include "get_location.h"
-#include "receive.h"
+#include "comm.h"
 #include "traj.h"
 #include "extraction_point.h"
 #include "send_to_arduino.h"
@@ -22,11 +22,9 @@ void* send_pos_to_server(void* arg) {
     pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
   
     printf("Thread \"send_pos_to_server\" lancé\n\n");
-    int nbcar;
     struct PARAMS * params = (struct PARAMS*)arg;
     struct PositionValue * pos = params->pos;
-    int sd = params->sd;
-    char message[500]; // Character array to store the formatted string
+    char message[MAX_OCTETS]; // Character array to store the formatted string
   
     while(1) {
       start = clock();
@@ -35,8 +33,7 @@ void* send_pos_to_server(void* arg) {
       printf("\nEnvoi d'un rapport de position : X:%d Y:%d Z:%d\n", pos->x, pos->y, pos->z);
       sprintf(message, "102:%d:%d:%d", pos->x, pos->y, pos->z);
 
-      nbcar = sendto(sd, message, strlen(message), 0, (const struct sockaddr *)params->server_adr, sizeof(*params->server_adr)); 
-      CHECK_ERROR(nbcar, -1, "Erreur d'envoi\n");
+      send_data(message, *params);
       
       attendre(start, 300.0); // pauser pour 300 millisecondes
 	}
@@ -98,6 +95,7 @@ void* send_next_point_to_arduino(void* arg) {
 */
 
 void calculate_next_point(struct PARAMS * params) {
+    clock_t start;
     Point actuel = params->currentPoint;
     Point last = params->last_goal;
     Point next = params->next_goal;
@@ -112,7 +110,8 @@ void calculate_next_point(struct PARAMS * params) {
     else {
         //point rests the same
         //printf("next goal hasn't changed\n");
-        delay(1000);
+        start = clock();
+        attendre(start, 1000);
     }
         
 }
@@ -259,7 +258,7 @@ int main(int argc, char *argv[]) {
     //bloquer threads de communication en mode debug
     if (DEBUG != 1) {
         //recevoir continuellement des messages depuis le serveur
-        if (pthread_create(&thread_id_receive, NULL, receive, (void*)params) != 0) {
+        if (pthread_create(&thread_id_receive, NULL, receive_data, (void*)params) != 0) {
             perror("pthread_create");
             return 1;
         }
