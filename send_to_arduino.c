@@ -89,6 +89,7 @@ int send_code_to_arduino(int port, int16_t code) {
 			return 0;
 		}
 	}
+	return 0;
 }
 
 void send_next_point_to_arduino(int port, Point next, Point current) {

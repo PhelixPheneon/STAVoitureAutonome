@@ -7,4 +7,10 @@ typedef struct request_t_data {
         struct PARAMS * params;
         } request_t_data;
 
-void* receive(void* arg);
+void* receive_data(void* arg);
+
+void * send_data(char data[MAX_OCTETS], struct PARAMS params);
+
+void * handle_request(void * arg);
+
+void itoa(int val, char * dest);

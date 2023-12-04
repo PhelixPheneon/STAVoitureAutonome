@@ -98,6 +98,7 @@ void* send_next_point_to_arduino(void* arg) {
 */
 
 void calculate_next_point(struct PARAMS * params) {
+    clock_t start;
     Point actuel = params->currentPoint;
     Point last = params->last_goal;
     Point next = params->next_goal;
@@ -112,7 +113,8 @@ void calculate_next_point(struct PARAMS * params) {
     else {
         //point rests the same
         //printf("next goal hasn't changed\n");
-        delay(1000);
+        start = clock();
+        attendre(start, 1000);
     }
         
 }
@@ -259,7 +261,7 @@ int main(int argc, char *argv[]) {
     //bloquer threads de communication en mode debug
     if (DEBUG != 1) {
         //recevoir continuellement des messages depuis le serveur
-        if (pthread_create(&thread_id_receive, NULL, receive, (void*)params) != 0) {
+        if (pthread_create(&thread_id_receive, NULL, receive_data, (void*)params) != 0) {
             perror("pthread_create");
             return 1;
         }

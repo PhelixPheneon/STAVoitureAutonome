@@ -51,12 +51,14 @@ void * receive_data(void * arg) {
           pthread_create(&tid, NULL, handle_request,(void *)handle_request_data);
         }
     }
+    return EXIT_SUCCESS;
 }
 
 void * send_data(char data[MAX_OCTETS], struct PARAMS params) {
     int nbcar;
     nbcar=sendto(params.sd, data,MAX_OCTETS+1,0,(const struct sockaddr *) params.server_adr,sizeof(*params.server_adr));
     CHECK_ERROR(nbcar,0,"\nErreur lors de l'émission des données");
+    return EXIT_SUCCESS;
 }
 
 void * handle_request(void * arg) {
@@ -88,4 +90,10 @@ void * handle_request(void * arg) {
   // On envoie la réponse
   send_data(resp, *data->params);
   pthread_exit(NULL);
+  return EXIT_SUCCESS;
+}
+
+void itoa(int val, char * dest) {
+    dest[0] = '\0';
+    sprintf(dest, "%d", val);
 }

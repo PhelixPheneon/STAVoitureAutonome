@@ -9,13 +9,13 @@ CFLAGS = -Wall -g -lm
 TARGET = client_exe
 
 # Source files
-SRCS = main.c marvelmind.c extraction_point.c get_location.c receive.c traj.c send_to_arduino.c
+SRCS = main.c marvelmind.c extraction_point.c get_location.c comm.c traj.c send_to_arduino.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)
 
 # Header files
-HEADERS = get_location.h marvelmind.h extraction_point.h receive.h traj.h send_to_arduino.h
+HEADERS = get_location.h marvelmind.h extraction_point.h comm.h traj.h send_to_arduino.h
 
 # Default rule
 all: $(TARGET)
