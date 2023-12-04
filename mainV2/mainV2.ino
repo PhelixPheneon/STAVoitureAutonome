@@ -133,10 +133,13 @@ int32_t x1;
 int32_t y0;
 int32_t y1;
 
+uint8_t buffer[16];
+int32_t data[4] = {x0, y0, x1, y1};
+
 
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   gyro.begin();
 
   for(int k = 0; k < NMOTORS; k++){
@@ -164,16 +167,14 @@ void loop() {
   //___________________________________________
   //Serial.println("\nstart loop");
   //lire le code
+  blink(1,500);
   
   if (Serial.available() == 0) {
     //Serial.println("nothing received");
     code = -1;
-    blink(1,500);
   } else { //+1 for terminator
     code = Serial.parseInt();
-    emptySerial(); //get rid of extra input that might rest
-    
-    
+    emptySerial(); //get rid of extra input that might rest    
   }  
 
   switch (code) {
@@ -184,18 +185,49 @@ void loop() {
       
       acknowledge(1);
       
-      while (Serial.available() < (4 * (sizeof(int32_t)+1))) {//+4 to include the four terminating characters
+      while (Serial.available() < (4 * sizeof(int32_t))) {
         //Serial.println(Serial.available());
         blink(1,50);
 
       }
-
-      x0 = Serial.parseInt();
-      y0 = Serial.parseInt();
-      x1 = Serial.parseInt();
-      y1 = Serial.parseInt();
+      Serial.readBytes(buffer, 16);
       emptySerial();
-  }
+      
+      for(int i = 0; i<4; i++) {
+        int firstIx = 4*i;
+        data[i] = (((int32_t)buffer[firstIx+3] << 24) + ((int32_t)buffer[firstIx+2] << 16)\
+                 + ((int32_t)buffer[firstIx+1] << 8) + ((int32_t)buffer[firstIx]));
+      }
+      x0 = data[0];
+      y0 = data[1];
+      x1 = data[2];
+      y1 = data[3];
+      
+      //debug code for checking the integers constructed
+      /*
+      char * intptr = (char*)&x0;
+      for(int32_t j = 0; j < sizeof(int32_t); j++) {
+        //send each byte as a char seperately
+        Serial.write((uint8_t*)(intptr+j), 1);
+      }
+      intptr = (char*)&y0;
+      for(int32_t j = 0; j < sizeof(int32_t); j++) {
+        //send each byte as a char seperately
+        Serial.write((uint8_t*)(intptr+j), 1);
+      }
+      intptr = (char*)&x1;
+      for(int32_t j = 0; j < sizeof(int32_t); j++) {
+        //send each byte as a char seperately
+        Serial.write((uint8_t*)(intptr+j), 1);
+      }
+      intptr = (char*)&y1;
+      for(int32_t j = 0; j < sizeof(int32_t); j++) {
+        //send each byte as a char seperately
+        Serial.write((uint8_t*)(intptr+j), 1);
+      }
+      */
+      
+  }//end switch
 
 
   //Serial.println("reçu:");
@@ -209,7 +241,7 @@ void loop() {
 
 
 
-
+/*
   //___________________________________________
   gyro.update();
 
@@ -256,11 +288,11 @@ void loop() {
   float deltaT = ((float) (currT - prevT))/( 1.0e6 );
   prevT = currT;
   
-  /*
+  
   float velocity1 = (pos - posPrev)/deltaT;
   posPrev = pos;
   prevT = currT;
-  */
+  
 
 
   double pwr = pidAngle.evalu(gyro.getAngleZ(), targetAngle, deltaT);
@@ -269,7 +301,7 @@ void loop() {
   moteur(50 + pwr,pwm[0],in1[0],in2[0]);
   moteur(50 -pwr,pwm[1],in1[1],in2[1]);
   //Serial.println("end of loop");
-
+*/
 
 }
  

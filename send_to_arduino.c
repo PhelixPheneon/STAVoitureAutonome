@@ -38,11 +38,12 @@ int serial_ouvert()
 
 int open_comm_arduino() {
 	int arduino_fd;
-	if ((arduino_fd = serialOpen(ARDUINO_SERIAL_DEVICE, 9600)) < 0 ) {
+	if ((arduino_fd = serialOpen(ARDUINO_SERIAL_DEVICE, 115200)) < 0 ) {
 		fprintf(stderr, "Unable to open serial device: %s\n", ARDUINO_SERIAL_DEVICE);
 		return 1;
 	}
-	
+	printf("setting up serial comm\n");
+	sleep(5);
 	return arduino_fd;
 }
 
@@ -93,7 +94,7 @@ int send_code_to_arduino(int port, int16_t code) {
 }
 
 void send_next_point_to_arduino(int port, Point next, Point current) {
-	int codeOutput = end_code_to_arduino(port, 1);
+	int codeOutput = send_code_to_arduino(port, 1);
 	if(codeOutput==0) {
 		printf("no ACK received ERROR\n");
 		return;
@@ -103,18 +104,46 @@ void send_next_point_to_arduino(int port, Point next, Point current) {
 	}
 		
 	
-	int data[4] = {(int)current.x, (int)current.y, (int)next.x, (int)next.y};
+	int32_t data[4] = {(int32_t)current.x, (int32_t)current.y, (int32_t)next.x, (int32_t)next.y};
 	
-	for(int i=0; i < 4; i++) {
+	for(int32_t i=0; i < 4; i++) {
 		char * intptr = (char*)&data[i];
-		for(int j = 0; j < sizeof(int); j++) {
+		for(int32_t j = 0; j < sizeof(int32_t); j++) {
 			//send each byte as a char seperately
+			printf("%02X ", *(intptr+j));
 			serialPutchar(port, *(intptr+j));
 		}
-		serialPutchar(port, '\0');	
+		//serialPutchar(port, '\0'); not necessary with bytewise comm
+		//printf("\n");	
+		/*
+		char * intptr = (char*)&data[i];
+		for(int j=0; j < sizeof(int32_t); j++) {
+			//send each byte as a char seperately
+			printf("%02X ", ((data[i] >> 8*(3-j)) && 0xFF));
+			serialPutchar(port, ((data[i] >> 8*(3-j)) && 0xFF));
+		}
+		printf("\n");*/
 	}
-	
+	printf("\n");	
 	printf("sent points to ARDUINO\n");
+	
+	//wait for debug return
+	time_t start, now;
+	double duration;
+	start = time(NULL);
+	int timeout = 5;
+	while(1) {
+		if (serialDataAvail(port) > 0) {
+			char received_byte = serialGetchar(port);
+			printf("%02X ", received_byte);
+		}
+		now = time(NULL);
+		duration = difftime(now,start);
+		if (duration >= timeout) {
+			printf("\nTIMEOUT\n");
+			break;
+		}
+	}
 
 }
 
