@@ -2,7 +2,7 @@
 #define _MAIN_H_
 
 #define MAX_OCTETS 1024
-#define DEBUG 0 //if 1 we are in debug mode = no server communication
+#define DEBUG 1 //if 1 we are in debug mode = no server communication
 
 #define _GNU_SOURCE
 #include <sched.h>
@@ -16,8 +16,8 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "./WiringPi/wiringPi/wiringPi.h"
-#include "./WiringPi/wiringPi/wiringSerial.h"
+#include "wiringPi.h"
+#include "wiringSerial.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>

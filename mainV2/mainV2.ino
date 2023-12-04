@@ -1,9 +1,9 @@
 #include <util/atomic.h>
-#include "MeOrion.h"
+//#include "MeOrion.h"
+#include <MeMegaPi.h>
 #include <Wire.h>
 
 #define PI  3.141592653589793
-#define SIZE_INT_BYTES 2
 
 
 double angleWrap(double angle);
@@ -128,10 +128,10 @@ SimplePID pidAngle;
 
 //COMMUNICATION ARDUINO _ RASPBERRY
 int code = -1;
-int x0;
-int x1;
-int y0;
-int y1;
+int32_t x0;
+int32_t x1;
+int32_t y0;
+int32_t y1;
 
 
 
@@ -184,7 +184,7 @@ void loop() {
       
       acknowledge(1);
       
-      while (Serial.available() < (4 * (sizeof(int)+1))) {//+4 to include the four terminating characters
+      while (Serial.available() < (4 * (sizeof(int32_t)+1))) {//+4 to include the four terminating characters
         //Serial.println(Serial.available());
         blink(1,50);
 
