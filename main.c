@@ -22,10 +22,8 @@ void* send_pos_to_server(void* arg) {
     pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
   
     printf("Thread \"send_pos_to_server\" lancé\n\n");
-    int nbcar;
     struct PARAMS * params = (struct PARAMS*)arg;
     struct PositionValue * pos = params->pos;
-    int sd = params->sd;
     char message[MAX_OCTETS]; // Character array to store the formatted string
   
     while(1) {
@@ -35,8 +33,7 @@ void* send_pos_to_server(void* arg) {
       printf("\nEnvoi d'un rapport de position : X:%d Y:%d Z:%d\n", pos->x, pos->y, pos->z);
       sprintf(message, "102:%d:%d:%d", pos->x, pos->y, pos->z);
 
-      nbcar = sendto(sd, message, strlen(message), 0, (const struct sockaddr *)params->server_adr, sizeof(*params->server_adr)); 
-      CHECK_ERROR(nbcar, -1, "Erreur d'envoi\n");
+      send_data(message, *params);
       
       attendre(start, 300.0); // pauser pour 300 millisecondes
 	}
